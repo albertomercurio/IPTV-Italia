@@ -41,5 +41,22 @@ class PlaylistValidationTests(unittest.TestCase):
         self.assertIn("expired", warnings[0][1])
 
 
+    def test_rai_relinker_urls_use_https_and_current_user_agent(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        for filename in ("iptvita.m3u", "iptvitaplus.m3u"):
+            with self.subTest(playlist=filename):
+                content = (repo_root / filename).read_text(encoding="utf-8")
+                urls = [
+                    line.strip()
+                    for line in content.splitlines()
+                    if "mediapolis.rai.it/relinker/relinkerServlet.htm?" in line
+                ]
+                self.assertEqual(len(urls), 14)
+                self.assertTrue(all(url.startswith("https://") for url in urls))
+                self.assertTrue(
+                    all("forceUserAgent=rainet/4.0.5" in url for url in urls)
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
