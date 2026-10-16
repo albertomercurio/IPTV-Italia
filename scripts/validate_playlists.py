@@ -6,9 +6,10 @@ require player-specific headers, or block automated checks.
 """
 from __future__ import annotations
 
+import argparse
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
 from urllib.parse import parse_qsl, urlsplit
@@ -52,6 +53,7 @@ def validate_playlist_text(
     path: str,
     content: str,
     now: Optional[datetime] = None,
+    expiry_warning_days: int = 30,
 ) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
     """Return (errors, warnings), each as (line number, message)."""
     errors: List[Tuple[int, str]] = []
@@ -120,10 +122,11 @@ def validate_playlist_text(
             errors.append((number, "stream URL must be an absolute HTTP(S) URL"))
         else:
             expiry = _signed_url_expiry(line)
-            if expiry is not None and expiry <= now:
+            if expiry is not None and expiry <= now + timedelta(days=expiry_warning_days):
                 title = pending[0] or "unnamed channel"
+                state = "expired at" if expiry <= now else "expires at"
                 warnings.append(
-                    (number, f"signed URL for {title!r} expired at {expiry.isoformat()}")
+                    (number, f"signed URL for {title!r} {state} {expiry.isoformat()}")
                 )
         pending = None
 
@@ -147,7 +150,15 @@ def _annotation(kind: str, path: Path, line: int, message: str) -> str:
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    files = [Path(arg) for arg in args] if args else sorted(Path(".").glob("*.m3u"))
+    parser = argparse.ArgumentParser(description="Validate M3U playlists and signed URL expirations.")
+    parser.add_argument(
+        "--fail-on-warning",
+        action="store_true",
+        help="return a failing exit code when a signed URL is expired or expires within 30 days",
+    )
+    parser.add_argument("files", nargs="*", type=Path)
+    parsed = parser.parse_args(args)
+    files = parsed.files or sorted(Path(".").glob("*.m3u"))
     if not files:
         print("No M3U files found.")
         return 1
@@ -175,6 +186,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
     if warning_count:
         print("Expiry warnings need manual review; stream reachability is not tested.")
+        if parsed.fail_on_warning:
+            return 1
     return 0
 
 
