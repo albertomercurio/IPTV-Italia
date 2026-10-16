@@ -17,6 +17,8 @@ on:
       - "tests/**"
       - ".github/workflows/validate-playlists.yml"
       - "README.md"
+  schedule:
+    - cron: "30 8 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -33,4 +35,11 @@ jobs:
       - name: Run validator tests
         run: python -m unittest discover -s tests -v
       - name: Validate playlists
-        run: python scripts/validate_playlists.py
+        env:
+          FAIL_ON_WARNING: ${{ github.event_name == 'schedule' }}
+        run: |
+          if [ "$FAIL_ON_WARNING" = "true" ]; then
+            python scripts/validate_playlists.py --fail-on-warning
+          else
+            python scripts/validate_playlists.py
+          fi
