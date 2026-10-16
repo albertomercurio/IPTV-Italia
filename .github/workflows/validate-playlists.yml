@@ -1,0 +1,36 @@
+name: Validate playlists
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "*.m3u"
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/validate-playlists.yml"
+      - "README.md"
+  pull_request:
+    paths:
+      - "*.m3u"
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/validate-playlists.yml"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run validator tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate playlists
+        run: python scripts/validate_playlists.py
