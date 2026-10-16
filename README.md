@@ -45,7 +45,7 @@ python3 -m unittest discover -s tests -v
 python3 scripts/validate_playlists.py
 ```
 
-Il validatore controlla la struttura M3U e segnala gli URL firmati con una scadenza esplicita già passata. Non prova a riprodurre gli stream: la disponibilità può dipendere da posizione, restrizioni del broadcaster, intestazioni HTTP, codec o cambiamenti della fonte. Un avviso di scadenza invita a controllare il link, ma non dimostra da solo che il canale sia irraggiungibile. GitHub Actions esegue gli stessi controlli quando cambiano le playlist o i file di validazione.
+Il validatore controlla la struttura M3U e segnala gli URL firmati con una scadenza esplicita già passata o entro i prossimi 30 giorni. Non prova a riprodurre gli stream: la disponibilità può dipendere da posizione, restrizioni del broadcaster, intestazioni HTTP, codec o cambiamenti della fonte. Un avviso di scadenza invita a controllare il link, ma non dimostra da solo che il canale sia irraggiungibile. GitHub Actions esegue test e controlli strutturali quando cambiano le playlist o i file di validazione; inoltre, ogni lunedì alle 08:30 UTC esegue un controllo delle scadenze e fallisce se trova URL firmati scaduti o in scadenza nei prossimi 30 giorni.
 
 # Segnala problemi e chiedi nuovi canali
 Se un qualsiasi link a un canale TV o radio non funzionasse, basta segnalarmelo aprendo un'Issue da [**questo**](https://github.com/Tundrak/IPTV-Italia/issues/new?labels=Problema&template=problema-canale.md&title=%5BProblema%5D) link (ricorda prima di controllare se qualcun altro ha già creato un'Issue con un problema simile o se il problema è già conosciuto guardando nella sezione "Problemi Noti" o nelle note delle release).  
